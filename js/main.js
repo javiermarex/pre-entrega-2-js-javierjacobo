@@ -1,4 +1,5 @@
-// Variables globales e mis productos.
+
+// Variables globales de mis productos.
 let productos = [
     { nombre: "Teclado Nisuta NS-KB8812B", precio: 2500 },
     { nombre: "Mouse Nisuta NS-MO8813", precio: 1200 },
@@ -11,78 +12,74 @@ let productos = [
     { nombre: "Auriculares Logitech H340", precio: 12000 }
 ];
 
-// Inicia mi simulador. Comienza a pedirle datos al usuario.
+// Al cargar la página, recuperar datos almacenados
+window.addEventListener('DOMContentLoaded', () => {
+    if (localStorage.getItem('usuario')) {
+        mostrarProductos();
+    }
+});
+
+// Evento para iniciar simulador
+document.getElementById('start-btn').addEventListener('click', iniciarSimulador);
+
+// Función para iniciar el simulador
 function iniciarSimulador() {
-    saludar();
-    pedirDatos();
-}
+    let nombre = document.getElementById('nombre').value;
+    let apellido = document.getElementById('apellido').value;
+    let anoNacimiento = parseInt(document.getElementById('anoNacimiento').value);
 
-// Funcion de saludar.
-function saludar() {
-    alert("Bienvenid@ a nuestra Tienda de Insumos Informáticos");
-}
-
-// Funcion para pedirle datos al visitante.
-function pedirDatos() {
-    let nombre = prompt("Ingresar Nombre");
-    let apellido = prompt("Ingresar Apellido");
-    let anoNacimiento = parseInt(prompt("Ingresar Año de Nacimiento"));
-
-    // Corrobora que el visitante sea mayor de edad (18 años)
-    if (anoNacimiento >= 2006 || anoNacimiento <= 1900) {
-        alert("No se permiten datos erróneos o menores de edad");
-        window.close();
+    if (!nombre || !apellido || !anoNacimiento) {
+        alert("Por favor, complete todos los campos.");
         return;
     }
 
-    saludarCliente(nombre, apellido);
+    // Validar la edad
+    if (anoNacimiento >= 2006 || anoNacimiento <= 1900) {
+        alert("No se permiten datos erróneos o menores de edad.");
+        return;
+    }
+
+    // Guardar datos en localStorage
+    let usuario = { nombre, apellido, anoNacimiento };
+    localStorage.setItem('usuario', JSON.stringify(usuario));
+
+    // Saludar y mostrar productos
+    saludarCliente(usuario);
     mostrarProductos();
 }
 
-// Funcion de saludar una vez que corrobora los datos del visitante.
-function saludarCliente(nombre, apellido) {
-    alert("Hola " + nombre + " " + apellido);
+// Función para saludar al cliente
+function saludarCliente(usuario) {
+    alert(`Hola ${usuario.nombre} ${usuario.apellido}`);
 }
 
-// Funcion para mostrar las marcas que trabajamos.
+// Función para mostrar productos en la página
 function mostrarProductos() {
-    let opcion = prompt("Elija qué lista quiere ver: \n 1-Nisuta \n 2-Genius \n 3-Logitech \n 4-Salir");
-
-    switch (opcion) {
-        case "1":
-            mostrarListaPorMarca("Nisuta");
-            break;
-        case "2":
-            mostrarListaPorMarca("Genius");
-            break;
-        case "3":
-            mostrarListaPorMarca("Logitech");
-            break;
-        case "4":
-            alert("Gracias por su visita.");
-            window.location.href = "https://www.google.com.ar";
-            break;
-        default:
-            alert("Opción no válida. Intente de nuevo.");
-            mostrarProductos();
-            break;
-    }
+    const productList = document.getElementById('product-list');
+    productList.innerHTML = `
+        <h2>Seleccione una marca:</h2>
+        <button onclick="mostrarListaPorMarca('Nisuta')">Nisuta</button>
+        <button onclick="mostrarListaPorMarca('Genius')">Genius</button>
+        <button onclick="mostrarListaPorMarca('Logitech')">Logitech</button>
+    `;
+    document.getElementById('reset-btn').style.display = "block";
 }
 
-// Funcion para mostrar los productos filtrando con map.
+// Función para mostrar productos por marca
 function mostrarListaPorMarca(marca) {
     let productosMarca = productos.filter(p => p.nombre.includes(marca));
-    let lista = productosMarca.map(p => `${p.nombre}: $${p.precio}`).join('\n');
-
-    let opcion = prompt(`${lista} \n\nPresione 1 para volver al menú anterior \nPresione 2 para salir`);
-
-    if (opcion === "1") {
-        mostrarProductos();
-    } else if (opcion === "2") {
-        alert("Gracias por su visita.");
-        window.location.href = "https://www.google.com.ar";
-    } else {
-        alert("Opción no válida. Intente de nuevo.");
-        mostrarListaPorMarca(marca);
-    }
+    let productList = document.getElementById('product-list');
+    productList.innerHTML = `
+        <h2>Productos de la marca ${marca}:</h2>
+        <ul>
+            ${productosMarca.map(p => `<li>${p.nombre}: $${p.precio}</li>`).join('')}
+        </ul>
+        <button onclick="mostrarProductos()">Volver al menú anterior</button>
+    `;
 }
+
+// Evento para reiniciar simulador
+document.getElementById('reset-btn').addEventListener('click', () => {
+    localStorage.removeItem('usuario');
+    window.location.reload();
+});
